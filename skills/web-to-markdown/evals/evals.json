@@ -1,0 +1,23 @@
+{
+  "skill_name": "web-to-markdown",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "把 https://docs.python.org/3/library/json.html 转成 markdown 文件",
+      "expected_output": "生成一个 .md 文件，内容为网页的markdown格式，保留标题、列表、代码块等格式，文件名从URL自动生成",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "下载 https://example.com 保存为 mydoc.md，不要下载图片",
+      "expected_output": "生成 mydoc.md 文件，不下载图片，保留markdown格式",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我需要保存 https://github.com/anthropics/anthropic-sdk-python 的文档，帮我把这个页面抓取下来保存为markdown",
+      "expected_output": "生成 .md 文件，自动从URL生成文件名，保留页面内容和格式",
+      "files": []
+    }
+  ]
+}
