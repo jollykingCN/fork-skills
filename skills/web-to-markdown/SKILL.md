@@ -1,6 +1,6 @@
 ---
 name: web-to-markdown
-description: 将在线网页URL转换为Markdown格式文件。适用于需要抓取网页内容并保存为可编辑Markdown文档的场景。当用户提到"网页转markdown"、"URL转md"、"抓取网页为markdown"、"下载网页为md"、"保存网页为markdown"等需求时触发。也适用于需要保留网页格式（标题、列表、代码块、表格等）或将网页内容导出为文档的情况。
+description: 将在线网页URL转换为Markdown格式文件。适用于需要抓取网页内容并保存为可编辑Markdown文档的场景。当用户提到"网页转markdown"、"URL转md"、"抓取网页为markdown"、"下载网页为md"、"保存网页为markdown"等需求时触发。也适用于需要保留网页格式（标题、列表、代码块、表格等）或 将网页内容导出为文档的情况。
 ---
 
 # 网页转 Markdown
