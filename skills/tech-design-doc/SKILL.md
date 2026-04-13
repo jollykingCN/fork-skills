@@ -1,174 +1,179 @@
 ---
 name: tech-design-doc
 description: |
-  Guide for writing high-quality technical design documents. Use this skill whenever the user asks to write, review, or improve a technical design document, architecture proposal, system design spec, RFC, or technical plan. Also trigger when the user asks about best practices for design docs, how to structure a technical proposal, or wants feedback on a draft design document. Covers document structure, audience awareness, diagram usage, code policy, and common pitfalls. Use this even when the user casually mentions "design doc", "tech spec", "architecture doc", or "RFC".
+  Write, review, or improve technical design documents for the user. Trigger when the user explicitly asks to produce a design document, architecture proposal, system design spec, RFC, or technical plan — for example: "help me write a design doc for X", "draft an RFC for Y", "review my tech spec". Also trigger when the user has been iterating on a technical solution and says "turn this into a design doc" or "write this up as a formal proposal". Do NOT trigger for casual questions about design doc best practices — only trigger when the user wants a document produced or reviewed.
 ---
 
-# 技术设计文档写作指南
+# Tech Design Doc — Operational Guide
 
-## 核心理念
+This skill helps the user produce high-quality technical design documents. The core principle: a design doc answers **"what" and "why"**, not "how to code". Express process logic with diagrams, declarative contracts with code, everything else with prose.
 
-设计文档回答的是 **"做什么"和"为什么这么做"**，而不是"代码怎么写"。它是团队对齐认知、做出决策、留下记录的工具，不是实现手册。
-
----
-
-## 一、动笔之前：明确读者
-
-不同读者决定不同写法。动笔前先回答：这份文档的主要读者是谁？
-
-| 读者 | 关注点 | 侧重 |
-|------|--------|------|
-| 团队开发者 | 怎么做 | 模块划分、接口定义、数据格式、流程图 |
-| 技术决策者 | 为什么这么做 | 方案对比、取舍理由、风险评估 |
-| 外部合作方 | 做了什么 | 边界、接口契约、约束条件 |
-
-大多数设计文档的读者是前两者的混合。按"决策者能快速理解全貌，开发者能深入了解细节"来组织层次。
+Before writing, read `references/writing-guide.md` for detailed principles on structure, diagram usage, code policy, and anti-patterns.
 
 ---
 
-## 二、推荐结构
+## Workflow
 
-以下结构适用于大多数技术设计文档，可根据项目规模增减章节：
+### Step 1: Gather Context
 
-### 1. 目标与约束
-- **问题陈述**：用 1-2 段话说清楚要解决什么问题，为什么要解决。
-- **核心目标**：可量化、可验证的目标（如"零漏报"、"P99 延迟 < 200ms"）。
-- **范围边界**：明确写出**不做什么**，这和写出做什么同样重要。
-- **约束条件**：技术约束、团队约束、时间约束。
+Before writing anything, collect these four inputs. If any are missing or ambiguous, **stop and ask the user** before proceeding.
 
-### 2. 整体架构
-- 一张架构总览图（推荐 Mermaid 流程图或框图）。
-- 用文字说明各层/模块的职责和协作关系。
-- 标注关键设计决策（如"存储层可插拔"、"管道与存储解耦"）。
+| Input | Question to ask | Why it matters |
+|-------|----------------|----------------|
+| Problem | "What problem are you solving? What's the current pain point?" | Drives the entire doc — without this, everything else is guesswork |
+| Audience | "Who will read this? Your dev team, leadership, or external partners?" | Determines depth, tone, and what to emphasize |
+| Constraints | "Any hard requirements? (tech stack, timeline, team size, must-integrate-with-X)" | Narrows the solution space before you start designing |
+| Scope | "What's explicitly out of scope?" | Prevents scope creep and misaligned expectations |
 
-### 3. 核心设计
-- 数据模型（表结构、JSON 格式、节点/关系定义等声明式内容）。
-- 模块间的接口契约（接口定义、API 格式）。
-- 关键流程（用 Mermaid 流程图/时序图/泳道图表达，不用实现代码）。
-- 方案对比（如果存在多种可选方案）。
+**Interaction rule**: Do NOT ask all four as a checklist. Infer what you can from the conversation history. Only ask what's genuinely missing. If the user has been discussing a technical solution for several turns, you likely already have most of these — summarize your understanding and confirm.
 
-### 4. 实施计划
-- 分阶段里程碑，每个阶段有明确的交付物和验证标准。
-- 依赖关系和关键路径。
+### Step 2: Generate Document Skeleton
 
-### 5. 风险与应对
-- 列出你在设计过程中真实担心的问题，不是走形式。
-- 每个风险配具体可执行的应对措施。
+Once context is clear, produce the skeleton using the **Output Template** below. Fill in what you know, mark unknowns with `[TBD - need input on X]`.
 
----
+Present the skeleton to the user and ask: "Does this structure cover what you need? Anything to add or remove before I flesh it out?"
 
-## 三、从问题出发，不从技术出发
+### Step 3: Fill In Core Sections
 
-**反模式**："我要用 Neo4j + ASM + Cytoscape.js，下面讲讲怎么用。"
+Fill the document template section by section, in this priority order:
 
-**正确做法**：先说问题和约束，技术选型从中自然推导出来。读者应该能从你的问题描述中理解为什么选了这些技术，而不是被迫接受你的偏好。
+- **Goals & Constraints** (template §1) — write first, since everything else depends on it.
+- **Architecture overview** (template §2) — produce a Mermaid diagram + prose explanation.
+- **Core design** (template §3) — data models, interfaces, key process flows (as Mermaid diagrams, NOT implementation code).
+- **Alternatives considered** (template §3.4) — only where real tradeoffs exist. Don't fabricate comparisons.
 
----
+**Interaction rule**: After completing Goals & Architecture, pause and share with the user. These are the foundation — if they're wrong, everything built on top is wasted. Only proceed to Core Design and Alternatives after user confirms direction.
 
-## 四、方案对比的原则
+### Step 4: Add Implementation Plan & Risks
 
-- 只在存在**真实取舍**的地方做对比。对于已经很明确的选择，直接陈述即可。
-- 给出客观的对比维度（如部署依赖、性能、团队门槛、CI 友好度）。
-- 给出你的推荐和理由，但让读者能根据自己的情况做判断。
-- 避免在对比中暗中偏袒某个方案——如果你有倾向，直说。
+- **Implementation plan** (template §4) — phased milestones with deliverables and verification criteria for each phase.
+- **Risks & mitigations** (template §5) — only real concerns you encountered during design, not boilerplate.
 
----
+**Interaction rule**: After completing all sections, share the full draft with the user before moving to the Review Pass. Don't self-review in isolation — the user may catch direction issues that the checklist won't.
 
-## 五、图的使用（核心原则）
+### Step 5: Review Pass
 
-**过程性逻辑用图，声明性契约用代码，其余用文字。**
+Before presenting the final document, self-check against these criteria:
 
-这是设计文档中最重要的表达原则。图比代码更适合设计文档，因为设计文档要表达的是逻辑流向、模块协作、决策分支，而不是语法细节。
+- [ ] Can a decision-maker understand the full picture in 5 minutes by reading only headings + architecture diagram?
+- [ ] Can a developer understand how to start implementing by reading the full doc?
+- [ ] Is every process flow expressed as a diagram, not implementation code?
+- [ ] Does the doc contain ONLY interface definitions and data format specs as code — no implementation logic?
+- [ ] Are scope boundaries ("what we don't do") explicitly stated?
+- [ ] Does every phase have a verification criterion ("how do we know it's done right")?
 
-### 图的选型
+### Step 6: Iterate
 
-| 要表达的内容 | 推荐图类型 | Mermaid 语法 |
-|------------|-----------|-------------|
-| 步骤流程、算法逻辑、决策分支 | 流程图（Flowchart） | `flowchart TD` |
-| 模块间的调用顺序、请求响应过程 | 时序图（Sequence Diagram） | `sequenceDiagram` |
-| 多角色/多模块的并行协作流程 | 泳道图（Flowchart with subgraph） | `flowchart` + `subgraph` |
-| 状态变迁、生命周期 | 状态图（State Diagram） | `stateDiagram-v2` |
-| 系统模块关系、层次结构 | 框图（Block Diagram） | `flowchart` 或 `block-beta` |
-| 数据模型、实体关系 | ER 图 | `erDiagram` |
+After presenting, ask: "Which sections need more depth? Anything I got wrong or missed?"
 
-### 为什么用 Mermaid
-
-- 纯文本，可以和 Markdown 一起版本管理。
-- GitLab / GitHub / 大多数文档平台直接渲染。
-- 修改成本低，diff 可读。
-- 不需要额外的画图工具。
-
-### 什么时候不用图
-
-- 简单的线性步骤（如"先 A，再 B，最后 C"），用文字足够。
-- 图中只有两三个节点、没有分支，信息密度太低，不值得画图。
+Expect multiple rounds. The first draft is a discussion artifact, not a final deliverable.
 
 ---
 
-## 六、代码在设计文档中的策略
+## Output Template
 
-### 应该放的
+Use this skeleton. Adjust section depth to match project scale — a small feature doesn't need the same weight as a platform redesign.
 
-| 类型 | 理由 | 示例 |
-|------|------|------|
-| 接口定义 | 它是设计契约，不是实现细节 | Java interface、gRPC proto、GraphQL schema |
-| 数据格式 | 它定义模块间的通信协议 | JSON 结构、SQL 建表语句、消息体格式 |
-| 配置示例 | 它是部署/集成的契约 | Maven 插件配置、CI 配置片段 |
+```markdown
+# [Project Name] — Technical Design Document
 
-### 不应该放的
+## 1. Goals & Constraints
 
-| 类型 | 理由 | 替代方式 |
-|------|------|---------|
-| 算法/流程的完整实现 | 读者需要"执行"代码才能理解逻辑 | 用流程图表达 |
-| 业务逻辑代码 | 会和实际实现脱节 | 用文字描述 + 流程图 |
-| 多语言对照实现 | 冗余，维护负担大 | 保留伪代码或最能说明问题的一种 |
-| 工具类/辅助方法 | 属于实现细节 | 不放，留给代码仓库 |
+### 1.1 Problem Statement
+[1-2 paragraphs: what problem, why it matters, why now]
 
-### 判断标准
+### 1.2 Core Goals
+[Measurable, verifiable goals]
 
-放代码之前问自己：**如果把这段代码删掉，换成一段文字或一张图，读者还能不能理解我的设计意图？** 如果能，代码就是多余的。
+### 1.3 Scope Boundaries
+[Explicitly: what this design does NOT cover]
+
+### 1.4 Constraints
+[Tech constraints, team constraints, timeline, dependencies]
+
+
+## 2. Architecture
+
+[Mermaid architecture diagram]
+
+[Prose: responsibilities of each layer/module, how they interact,
+ key design decisions and WHY they were made]
+
+
+## 3. Core Design
+
+### 3.1 Data Model
+[Table definitions, JSON schemas, entity-relationship descriptions]
+
+### 3.2 Interfaces
+[API contracts, interface definitions, message formats between modules]
+
+### 3.3 Key Processes
+[Mermaid flowcharts / sequence diagrams / swimlane diagrams for
+ critical logic. NO implementation code — diagrams only]
+
+### 3.4 Alternatives Considered (if applicable)
+[Comparison table with objective dimensions.
+ State your recommendation and reasoning.]
+
+
+## 4. Implementation Plan
+
+### Phase 1: [Name] (estimated duration)
+- Deliverables: ...
+- Verification: [How to confirm it's done correctly]
+
+### Phase 2: [Name] (estimated duration)
+...
+
+
+## 5. Risks & Mitigations
+
+| Risk | Impact | Affected Area | Mitigation |
+|------|--------|---------------|------------|
+| [Real concern from design process] | [Concrete impact] | [Which modules/phases] | [Actionable mitigation] |
+```
 
 ---
 
-## 七、分层递进
+## What Goes Where
 
-好的设计文档像地图，支持不同缩放级别：
-
-- **高层**（架构图 + 章节标题）：决策者 5 分钟理解全貌。
-- **中层**（文字描述 + 流程图）：技术负责人理解设计决策。
-- **底层**（接口定义 + 数据格式）：开发者直接上手实施。
-
-读者应该能在任意层级停下来，已获得的信息是自洽的。
-
----
-
-## 八、容易忽视的要点
-
-### 写清楚"不做什么"
-划定范围边界，避免读者对范围理解不一致。"不考虑反射调用"不是偷懒，是在做设计决策。
-
-### 风险要写真实的担忧
-不是合规检查式的套话。如果你在设计时真的担心"团队不信任工具 → 工具被弃用"，就写出来，并给出具体可执行的应对。
-
-### 验证标准写进去
-每个阶段完成后怎么判断"做对了"？没有验证标准的方案文档，执行到最后容易变成"看起来做完了但没人知道对不对"。
-
-### 方案要能演进
-在关键的耦合点留出接口。不是过度设计，而是为合理的变化预留空间。比如"统一语义模型 + 导出适配器"比"直接写死 Neo4j"更能适应需求变化。
-
-### 文档是讨论出来的
-写第一版的目的不是完美，而是有一个具体的东西可以讨论和改进。好的方案文档通常经历多轮迭代。
+| Content type | Representation | Belongs in doc? |
+|-------------|----------------|-----------------|
+| Process logic, decision branches, algorithms | Mermaid diagram (flowchart / sequence / swimlane) | Yes |
+| Interface definitions, API contracts | Code (interface / proto / schema) | Yes |
+| Data formats, table schemas | Code (JSON / SQL DDL) | Yes |
+| Build/deploy config snippets | Code (short, declarative) | Yes, if it's a design decision |
+| Implementation logic, business code | — | **No** — use diagram or prose instead |
+| Multi-language parallel implementations | — | **No** — pick one or use pseudocode |
 
 ---
 
-## 九、反模式清单
+## Examples
 
-| 反模式 | 问题 | 修正 |
-|--------|------|------|
-| 技术炫技 | 堆砌技术名词，读者看不到问题和动机 | 从问题出发，技术是手段 |
-| 代码即文档 | 大段实现代码代替设计描述 | 过程逻辑用图，契约用接口定义 |
-| 只有一种方案 | 读者被迫接受，没有决策依据 | 在真实取舍处提供对比 |
-| 风险章节走形式 | "可能出问题 → 注意一下" | 写真实担忧 + 具体应对 |
-| 没有验证标准 | 做完不知道对不对 | 每个阶段定义交付物和验证步骤 |
-| 过度设计 | 文档比系统还复杂 | 匹配项目规模，小项目用轻量结构 |
-| 一次成型 | 闭门造车，不迭代 | 先写初版供讨论，多轮修订 |
+**Example 1: User asks to write a design doc from scratch**
+
+> User: "Help me write a design doc for a notification service that supports email, SMS, and push notifications."
+
+Claude should:
+1. Gather missing context (Step 1): "Before I draft the doc — who's the audience? And are there constraints on tech stack or existing infrastructure I should know about?"
+2. After getting answers, produce the document skeleton and confirm structure with the user (Step 2).
+3. Fill in Goals & Architecture first, share for confirmation (Step 3 first pause point). Only after the user confirms direction, proceed to Core Design and remaining sections.
+
+**Example 2: User has been discussing a solution and wants it formalized**
+
+> User: [after 10 turns of technical discussion] "Can you turn this into a design doc?"
+
+Claude should:
+1. NOT ask questions it already has answers to from the conversation.
+2. Summarize the key decisions made so far: "Based on our discussion, here's what I understand: [problem], [approach], [key decisions]. I'll structure this into a design doc — let me know if I'm missing anything."
+3. Produce a complete first draft, since context is already rich.
+
+**Example 3: User asks to review an existing design doc**
+
+> User: "Review my design doc and suggest improvements." [attaches document]
+
+Claude should:
+1. Read `references/writing-guide.md` for evaluation criteria.
+2. Evaluate against: audience clarity, problem-driven structure, diagram vs code usage, scope boundaries, verification criteria, risk quality.
+3. Give structured feedback: what's strong, what's missing, specific rewrite suggestions for weak sections.
