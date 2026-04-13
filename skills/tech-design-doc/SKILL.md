@@ -1,7 +1,7 @@
 ---
 name: tech-design-doc
 description: |
-  Write, review, or improve technical design documents for the user. Trigger when the user explicitly asks to produce a design document, architecture proposal, system design spec, RFC, or technical plan — for example: "help me write a design doc for X", "draft an RFC for Y", "review my tech spec". Also trigger when the user has been iterating on a technical solution and says "turn this into a design doc" or "write this up as a formal proposal". Do NOT trigger for casual questions about design doc best practices — only trigger when the user wants a document produced or reviewed.
+  Write, review, or improve technical design documents for the user. Trigger when the user explicitly asks to produce a design document, architecture proposal, system design spec, RFC, or technical plan — for example: "help me write a design doc for X", "draft an RFC for Y", "review my tech spec". Also trigger when the user has been iterating on a technical solution and says "turn this into a design doc" or "write this up as a formal proposal". Do NOT trigger when the user has no intent to produce or review a document — e.g. casual conversation that happens to mention design docs without a concrete deliverable in mind.
 ---
 
 # Tech Design Doc — Operational Guide
@@ -14,7 +14,16 @@ Before writing, read `references/writing-guide.md` for detailed principles on st
 
 ## Workflow
 
-### Step 1: Gather Context
+### Scene Router
+
+First, determine what the user needs:
+
+- **Write a new design doc** → follow Steps 1-6 below.
+- **Review an existing design doc** → skip to the **Review Flow** at the end of this section.
+
+### Writing Flow
+
+#### Step 1: Gather Context
 
 Before writing anything, collect these four inputs. If any are missing or ambiguous, **stop and ask the user** before proceeding.
 
@@ -27,13 +36,13 @@ Before writing anything, collect these four inputs. If any are missing or ambigu
 
 **Interaction rule**: Do NOT ask all four as a checklist. Infer what you can from the conversation history. Only ask what's genuinely missing. If the user has been discussing a technical solution for several turns, you likely already have most of these — summarize your understanding and confirm.
 
-### Step 2: Generate Document Skeleton
+#### Step 2: Generate Document Skeleton
 
 Once context is clear, produce the skeleton using the **Output Template** below. Fill in what you know, mark unknowns with `[TBD - need input on X]`.
 
 Present the skeleton to the user and ask: "Does this structure cover what you need? Anything to add or remove before I flesh it out?"
 
-### Step 3: Fill In Core Sections
+#### Step 3: Fill In Core Sections
 
 Fill the document template section by section, in this priority order:
 
@@ -42,19 +51,20 @@ Fill the document template section by section, in this priority order:
 - **Core design** (template §3) — data models, interfaces, key process flows (as Mermaid diagrams, NOT implementation code).
 - **Alternatives considered** (template §3.4) — only where real tradeoffs exist. Don't fabricate comparisons.
 
-**Interaction rule**: After completing Goals & Architecture, pause and share with the user. These are the foundation — if they're wrong, everything built on top is wasted. Only proceed to Core Design and Alternatives after user confirms direction.
+**Interaction rule**: After completing Goals & Architecture, pause and share with the user. These are the foundation — if they're wrong, everything built on top is wasted. Only proceed to Core Design and Alternatives after user confirms direction. **Exception**: if the context is already deeply aligned (e.g. the user is converting a long technical discussion into a doc, as in Example 2), produce a complete first draft without intermediate pauses.
 
-### Step 4: Add Implementation Plan & Risks
+#### Step 4: Add Implementation Plan & Risks
 
 - **Implementation plan** (template §4) — phased milestones with deliverables and verification criteria for each phase.
 - **Risks & mitigations** (template §5) — only real concerns you encountered during design, not boilerplate.
 
 **Interaction rule**: After completing all sections, share the full draft with the user before moving to the Review Pass. Don't self-review in isolation — the user may catch direction issues that the checklist won't.
 
-### Step 5: Review Pass
+#### Step 5: Review Pass
 
 Before presenting the final document, self-check against these criteria:
 
+- [ ] Does the doc lead with the problem and constraints, not with technology choices?
 - [ ] Can a decision-maker understand the full picture in 5 minutes by reading only headings + architecture diagram?
 - [ ] Can a developer understand how to start implementing by reading the full doc?
 - [ ] Is every process flow expressed as a diagram, not implementation code?
@@ -62,11 +72,21 @@ Before presenting the final document, self-check against these criteria:
 - [ ] Are scope boundaries ("what we don't do") explicitly stated?
 - [ ] Does every phase have a verification criterion ("how do we know it's done right")?
 
-### Step 6: Iterate
+#### Step 6: Iterate
 
 After presenting, ask: "Which sections need more depth? Anything I got wrong or missed?"
 
 Expect multiple rounds. The first draft is a discussion artifact, not a final deliverable.
+
+### Review Flow
+
+When the user wants to review or improve an existing design doc:
+
+1. Read the document provided by the user.
+2. Read `references/writing-guide.md` for evaluation criteria.
+3. Evaluate against the Step 5 checklist plus the anti-pattern checklist in `references/writing-guide.md` §10.
+4. Give structured feedback: what's strong, what's missing, specific rewrite suggestions for weak sections. Prioritize issues that affect the doc's ability to drive correct decisions (problem clarity, scope, architecture) over cosmetic issues (formatting, wording).
+5. If the user asks you to rewrite sections, apply the same principles from the Writing Flow (diagrams for process logic, code only for contracts, etc.).
 
 ---
 
@@ -119,11 +139,11 @@ Use this skeleton. Adjust section depth to match project scale — a small featu
 
 ## 4. Implementation Plan
 
-### Phase 1: [Name] (estimated duration)
+### Phase 1: [Name]
 - Deliverables: ...
 - Verification: [How to confirm it's done correctly]
 
-### Phase 2: [Name] (estimated duration)
+### Phase 2: [Name]
 ...
 
 
@@ -137,6 +157,8 @@ Use this skeleton. Adjust section depth to match project scale — a small featu
 ---
 
 ## What Goes Where
+
+Quick reference for deciding representation format during Step 3. For detailed rationale, see `references/writing-guide.md` §3-4.
 
 | Content type | Representation | Belongs in doc? |
 |-------------|----------------|-----------------|
@@ -174,6 +196,5 @@ Claude should:
 > User: "Review my design doc and suggest improvements." [attaches document]
 
 Claude should:
-1. Read `references/writing-guide.md` for evaluation criteria.
-2. Evaluate against: audience clarity, problem-driven structure, diagram vs code usage, scope boundaries, verification criteria, risk quality.
-3. Give structured feedback: what's strong, what's missing, specific rewrite suggestions for weak sections.
+1. Route to Review Flow (per Scene Router).
+2. Follow Review Flow steps: read the doc, load writing-guide.md, evaluate against checklist, give structured feedback prioritizing decision-critical issues over cosmetics.
