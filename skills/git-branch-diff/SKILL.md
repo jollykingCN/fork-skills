@@ -31,7 +31,7 @@ python3 scripts/gen_diff.py <基础分支> <特性分支>
 
 ### 3. 输出说明
 
-脚本会在脚本所在目录生成 `diff_report.md`，包含：
+脚本会在当前工作目录（调用脚本时所处的目录）生成 `diff_report.md`，包含：
 
 - **分支信息**：基础分支、特性分支的 commit hash，merge base 信息
 - **文件分类清单**：新增 / 删除 / 修改的文件列表

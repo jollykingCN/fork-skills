@@ -18,6 +18,35 @@ def run_git(*args):
     return result.stdout
 
 
+def resolve_upstream_branch(branch):
+    """尝试将本地分支名解析为其远程跟踪分支（如 main → origin/main）。
+    如果远程跟踪分支存在且领先于本地分支，优先使用远程版本。
+    返回 (实际使用的分支名, 是否做了替换)。"""
+    # 获取该分支的远程跟踪引用
+    result = subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", f"{branch}" + "@{u}"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        # 没有设置 upstream，尝试直接用 origin/<branch>
+        result2 = subprocess.run(
+            ["git", "rev-parse", "--verify", f"origin/{branch}"],
+            capture_output=True, text=True,
+        )
+        if result2.returncode == 0:
+            return f"origin/{branch}", True
+        return branch, False
+
+    upstream = result.stdout.strip()
+    # 比较本地和远程的 commit
+    local_commit = run_git("rev-parse", branch).strip()
+    upstream_commit = run_git("rev-parse", upstream).strip()
+
+    if local_commit != upstream_commit:
+        return upstream, True
+    return branch, False
+
+
 def main():
     if len(sys.argv) != 3:
         print("用法: python3 gen_diff.py <基础分支> <特性分支>")
@@ -31,7 +60,18 @@ def main():
     run_git("rev-parse", "--git-dir")
 
     # 先 fetch 远程分支数据，确保本地有最新的 commit 快照
+    print("正在 fetch 远程分支数据...")
     run_git("fetch", "--all", "--quiet")
+
+    # 解析基础分支：优先使用远程跟踪分支，避免本地分支落后导致误判
+    resolved_base, was_replaced = resolve_upstream_branch(base_branch)
+    if was_replaced:
+        local_hash = run_git("rev-parse", base_branch).strip()[:8]
+        remote_hash = run_git("rev-parse", resolved_base).strip()[:8]
+        print(f"⚠ 本地 '{base_branch}' ({local_hash}) 与远程不同步，自动使用 '{resolved_base}' ({remote_hash})")
+
+    display_base = base_branch
+    base_branch = resolved_base
 
     # 确认两个分支都存在
     for branch in [base_branch, feature_branch]:
@@ -71,9 +111,9 @@ def main():
 
     # 输出分支信息
     print(f"\n{'='*80}")
-    print(f"差异报告: {feature_branch} 相对于 {base_branch}")
+    print(f"差异报告: {feature_branch} 相对于 {display_base}")
     print(f"{'='*80}")
-    print(f"  基础分支:   {base_branch}  ({base_commit[:8]})")
+    print(f"  基础分支:   {display_base}  ({base_commit[:8]})")
     print(f"  特性分支:   {feature_branch}  ({feature_commit[:8]})")
     print(f"  Merge Base: {merge_base[:8]}")
     print(f"  文件变更:   新增 {len(added)} | 删除 {len(deleted)} | 修改 {len(modified)} | 共 {total} 个")
@@ -97,10 +137,10 @@ def main():
         print()
 
     # 写入报告文件
-    report_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diff_report.md")
+    report_path = os.path.join(os.getcwd(), "diff_report.md")
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write(f"# 差异报告: {feature_branch} vs {base_branch}\n\n")
-        f.write(f"- 基础分支: `{base_branch}` ({base_commit[:8]})\n")
+        f.write(f"# 差异报告: {feature_branch} vs {display_base}\n\n")
+        f.write(f"- 基础分支: `{display_base}` ({base_commit[:8]})\n")
         f.write(f"- 特性分支: `{feature_branch}` ({feature_commit[:8]})\n")
         f.write(f"- Merge Base: `{merge_base[:8]}`\n")
         f.write(f"- 文件变更: 新增 {len(added)} | 删除 {len(deleted)} | 修改 {len(modified)} | 共 {total} 个\n\n")
